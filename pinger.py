@@ -9,13 +9,13 @@ import binascii
 import signal
 
 ICMP_ECHO_REQUEST = 8
-# timeout_statement = ""
+timeout_statement = "Request timed out."
 list_of_times = []
 
 class statistic_functions():
     def __init__(self, all_times):
         self.all_times_received = all_times
-        self.all_filtered_times = [time for time in self.all_times_received if time != "Request timed out."]
+        self.all_filtered_times = [time for time in self.all_times_received if time != timeout_statement]
 
     def min_ping_times(self):
         return min(self.all_filtered_times)
@@ -30,7 +30,7 @@ class statistic_functions():
     def percent_lost(self):
         number_of_lost = 0
         for time in self.all_times_received:
-            if time == "Request timed out.":
+            if time == timeout_statement:
                 number_of_lost+=1
         return 100 * float(number_of_lost)/float(len(self.all_times_received))
 
@@ -67,7 +67,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         howLongInSelect = (time.time() - startedSelect)
         
         if whatReady[0] == []: # Timeout
-            return "Request timed out."
+            return timeout_statement
         timeReceived = time.time()
         recPacket, addr = mySocket.recvfrom(1024)
 
@@ -91,7 +91,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         #Fill in end
         timeLeft = timeLeft - howLongInSelect
         if timeLeft <= 0:
-            return "Request timed out."
+            return timeout_statement
 
 def sendOnePing(mySocket, destAddr, ID):
     # Header is type (8), code (8), checksum (16), id (16), sequence (16)
