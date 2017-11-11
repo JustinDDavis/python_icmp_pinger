@@ -12,6 +12,29 @@ ICMP_ECHO_REQUEST = 8
 # timeout_statement = ""
 list_of_times = []
 
+class statistic_functions():
+    def __init__(self, all_times):
+        self.all_times_received = all_times
+        self.all_filtered_times = [time for time in self.all_times_received if time != "Request timed out."]
+
+    def min_ping_times(self):
+        return min(self.all_filtered_times)
+
+
+    def max_ping_times(self):
+        return max(self.all_filtered_times)
+
+    def avg_ping_times(self):
+        return float(sum(self.all_filtered_times) / len(self.all_filtered_times))
+
+    def percent_lost(self):
+        number_of_lost = 0
+        for time in self.all_times_received:
+            if time == "Request timed out.":
+                number_of_lost+=1
+        return 100 * float(number_of_lost)/float(len(self.all_times_received))
+
+
 def checksum(string):
     csum = 0
     countTo = (len(string) // 2) * 2
@@ -131,50 +154,17 @@ def ping(host, timeout=1):
     return delay
 
 def exit_handler(signal, frame):
-        # print('You pressed Ctrl+C!')
-        # print(list_of_times)
+        stats = statistic_functions(list_of_times)
+        print ""
         if(len(list_of_times) > 0):
-            print ""
-            print "Min: {0:.5f} ms".format( (min_ping_time(list_of_times) *1000 ) )
-            print "Max: {0:.5f} ms".format( (max_ping_time(list_of_times) *1000 ) )
-            print "Avg: {0:.5f} ms".format( (avg_ping_time(list_of_times) *1000 ) )
-            print "Lost: {0:.3f}% ms".format(   (percent_lost(list_of_times)))
+            print "Min: {0:.5f} ms".format( (stats.min_ping_times() *1000 ) )
+            print "Max: {0:.5f} ms".format( (stats.max_ping_times() *1000 ) )
+            print "Avg: {0:.5f} ms".format( (stats.avg_ping_times() *1000 ) )
+            print "Lost: {0:.3f}% ms".format(stats.percent_lost())
+        else:
+            print "No packets were collected before program exited"
         sys.exit(0)
 signal.signal(signal.SIGINT, exit_handler)
-
-def min_ping_time(times):
-    new_times = [time for time in times if time != "Request timed out."]
-    minimum = min(new_times)
-    if(minimum == 'Request timed out.'):
-        return 0
-    return minimum
-
-def max_ping_time(times):
-    # Filter out the "Request timed out" results
-    new_times = [time for time in times if time != "Request timed out."]
-    maximum = max(new_times)
-    if(maximum == "Request timed out."):
-        return 0
-    return maximum
-
-def avg_ping_time(times):
-    new_times = [time for time in times if time != "Request timed out."]
-    if(len(new_times) == 0):
-        return 0
-
-    # we have a full array of avlues
-    average = float(sum(new_times) / len(new_times))
-    # print average
-    return average
-
-def percent_lost(times):
-    number_of_lost = 0
-    for time in times:
-        if time == "Request timed out.":
-            number_of_lost+=1
-    print number_of_lost
-    print len(times)
-    return 100 * float(number_of_lost)/float(len(times))
 
 
 # ping("localhost")
